@@ -117,7 +117,6 @@ int main(int argc, char *argv[]) {
     unordered_set<int> connected_tcp_clients;
 
     while (1) {
-        // int activity = poll(poll_fds.elems, poll_fds.size(), -1);
         int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
         for (int i = 0; i < num_events; ++i) {
             if (!(events[i].events & EPOLLIN))
@@ -264,7 +263,7 @@ int main(int argc, char *argv[]) {
                     string id = string(message.unique_id);
 
                     if (!strncmp(message.command, "exit", 4))
-                        break;
+                        break; // TODO - this might be useless
                     
                     if (!strncmp(message.command, "subscribe", 9)) {
                         subscribers_of[message.topic].insert(id);
