@@ -252,7 +252,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // TODO - close all connections
+    for (auto client : connected_tcp_clients) {
+        tcp_message_t stop_message;
+        memset(stop_message.topic, 0, MAX_TOPIC_LEN);
+        strcpy(stop_message.topic, "stop");
+        rc = send(client, (char *) &stop_message, sizeof(stop_message), 0);
+        if (rc < 0) {
+            log("send - Could not send \"stop\" signal to TCP client %d\n", client);
+            return -1;
+        }
+    }
 
     log("All OK\n");
     return 0;
