@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
         log("Invalid port number (%d < 1024)\n", server_port);
         return -1;
     }
-    log("server_port OK\n");
+    log("server_port OK (%u)\n", server_port);
 
     // - - - - -
 
@@ -99,8 +99,10 @@ int main(int argc, char *argv[]) {
     }
 
     // - - - - -
+
+    bool forever = true;
     
-    while (1) {
+    while (forever) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
         for (int i = 0; i < num_events; ++i) {
             if (!(events[i].events & EPOLLIN))
@@ -113,8 +115,10 @@ int main(int argc, char *argv[]) {
                 if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
                     log("[ INPUT ] %s", buf);
                     // Check if "exit" was typed
-                    if (!strncmp(buf, "exit", 4))
+                    if (!strncmp(buf, "exit", 4)) {
+                        forever = false;
                         break;
+                    }
 
                     message_from_tcp_t message;
                     strcpy(message.unique_id, id.c_str());
@@ -154,8 +158,10 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
 
-                if (!strncmp(message_from_server.topic, "stop", 4))
+                if (!strncmp(message_from_server.topic, "stop", 4)) {
+                    forever = false;
                     break;
+                }
                 
                 printf("%s:%hu - %s - %s - %s\n",
                        message_from_server.from_ip,

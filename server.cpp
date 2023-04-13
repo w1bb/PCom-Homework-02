@@ -115,8 +115,9 @@ int main(int argc, char *argv[]) {
     // - - - - -
 
     unordered_set<int> connected_tcp_clients;
+    bool forever = true;
 
-    while (1) {
+    while (forever) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
         for (int i = 0; i < num_events; ++i) {
             if (!(events[i].events & EPOLLIN))
@@ -129,8 +130,10 @@ int main(int argc, char *argv[]) {
                 if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
                     log("[ INPUT ] %s", buf);
                     // Check if "exit" was typed
-                    if (!strncmp(buf, "exit", 4))
+                    if (!strncmp(buf, "exit", 4)) {
+                        forever = false;
                         break;
+                    }
                 }
             }
 
