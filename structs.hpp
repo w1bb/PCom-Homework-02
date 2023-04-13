@@ -32,7 +32,7 @@ using namespace std;
 #define MSG_TYPE_FLOAT 2
 #define MSG_TYPE_STRING 3
 
-string msg_type_to_string(int msg_type);
+string msg_type_to_string(uint8_t msg_type);
 
 // - - - - -
 

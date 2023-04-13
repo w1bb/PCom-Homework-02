@@ -1,6 +1,6 @@
 #include "structs.hpp"
 
-string msg_type_to_string(int msg_type) {
+string msg_type_to_string(uint8_t msg_type) {
     if (msg_type == MSG_TYPE_INT)
         return "INT";
     if (msg_type == MSG_TYPE_SHORT_REAL)

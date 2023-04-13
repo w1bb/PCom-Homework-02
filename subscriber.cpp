@@ -118,6 +118,28 @@ int main(int argc, char *argv[]) {
                         break;
                 }
             }
+
+            // - - - - -
+            
+            // Check for new server message
+            else if (events[i].data.fd == tcp_listen_fd) {
+                tcp_message_t message_from_server;
+                rc = recv(tcp_listen_fd, &message_from_server, sizeof(message_from_server), 0);
+                if (rc < 0) {
+                    log("recv - Could not receive message from server\n");
+                    return -1;
+                }
+
+                if (!strncmp(message_from_server.topic, "stop", 4))
+                    break;
+                
+                printf("%s:%hu - %s - %s - %s\n",
+                       message_from_server.from_ip,
+                       message_from_server.from_port,
+                       message_from_server.topic,
+                       msg_type_to_string(message_from_server.message_type).c_str(),
+                       message_from_server.payload);
+            }
         }
     }
 
