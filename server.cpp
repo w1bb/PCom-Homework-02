@@ -307,7 +307,8 @@ int main(int argc, char *argv[]) {
         rc = send(client, (char *) &stop_message, sizeof(stop_message), 0);
         if (rc < 0) {
             log("send - Could not send \"stop\" signal to TCP client %d\n", client);
-            return -1;
+            // No need to force stop now, just ignore
+            // return -1;
         }
     }
 
