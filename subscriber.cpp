@@ -12,7 +12,6 @@ int main(int argc, char *argv[]) {
 
     int rc;
     char buf[2048]{};
-    socklen_t sock_len = sizeof(struct sockaddr);
 
     struct sockaddr_in server_address;
     memset((char *) &server_address, 0, sizeof(struct sockaddr_in));
@@ -48,13 +47,13 @@ int main(int argc, char *argv[]) {
     // General server connection details
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(server_port);
-    int tcp_listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (tcp_listen_fd < 0) {
+    int tcp_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (tcp_server_fd < 0) {
         log("socket - TCP socket fail\n");
         return -1;
     }
     int disable_neagle = 1;
-    rc = setsockopt(tcp_listen_fd, IPPROTO_TCP, TCP_NODELAY,
+    rc = setsockopt(tcp_server_fd, IPPROTO_TCP, TCP_NODELAY,
                     &disable_neagle, sizeof(int));
     if (rc < 0) {
         log("setsockopt - Could not disable Neagle for client\n");
@@ -74,10 +73,10 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     // Add TCP listen
-    event.data.fd = tcp_listen_fd;
+    event.data.fd = tcp_server_fd;
     event.events = EPOLLIN | EPOLLET;
-    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_listen_fd, &event) < 0) {
-        log("epoll_ctl - Could not add tcp_listen_fd");
+    if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_server_fd, &event) < 0) {
+        log("epoll_ctl - Could not add tcp_server_fd");
         return -1;
     }
     log("Added stdin + server to poll\n");
@@ -85,7 +84,7 @@ int main(int argc, char *argv[]) {
     // - - - - -
 
     // Connect
-    rc = connect(tcp_listen_fd, (struct sockaddr *)&server_address, sizeof(server_address));
+    rc = connect(tcp_server_fd, (struct sockaddr *)&server_address, sizeof(server_address));
     if (rc < 0) {
         log("connect - Could not connect to server\n");
         return -1;
@@ -93,7 +92,7 @@ int main(int argc, char *argv[]) {
     // Send ID to server
     memset(buf, 0, sizeof(buf));
     strcpy(buf, id.c_str());
-    rc = send(tcp_listen_fd, buf, sizeof(buf), 0);
+    rc = send(tcp_server_fd, buf, sizeof(buf), 0);
     if (rc < 0) {
         log("send - Could not send ID to server\n");
         return -1;
@@ -116,15 +115,40 @@ int main(int argc, char *argv[]) {
                     // Check if "exit" was typed
                     if (!strncmp(buf, "exit", 4))
                         break;
+
+                    message_from_tcp_t message;
+                    strcpy(message.unique_id, id.c_str());
+                    if (!strncmp(buf, "subscribe", 9)) {
+                        sscanf("%s %s %" SCNu8,
+                               message.command,
+                               message.topic,
+                               message.store_and_forward);
+                        rc = send(tcp_server_fd, &message, sizeof(message), 0);
+                        if (rc < 0) {
+                            log("send - Could not send message to server\n");
+                            return -1;
+                        }
+                        printf("Subscribed to topic.\n");
+                    } else if (!strncmp(buf, "unsubscribe", 11)) {
+                        sscanf("%s %s %" SCNu8,
+                               message.command,
+                               message.topic);
+                        rc = send(tcp_server_fd, &message, sizeof(message), 0);
+                        if (rc < 0) {
+                            log("send - Could not send message to server\n");
+                            return -1;
+                        }
+                        printf("Unsubscribed from topic.\n");
+                    }
                 }
             }
 
             // - - - - -
             
             // Check for new server message
-            else if (events[i].data.fd == tcp_listen_fd) {
+            else if (events[i].data.fd == tcp_server_fd) {
                 tcp_message_t message_from_server;
-                rc = recv(tcp_listen_fd, &message_from_server, sizeof(message_from_server), 0);
+                rc = recv(tcp_server_fd, &message_from_server, sizeof(message_from_server), 0);
                 if (rc < 0) {
                     log("recv - Could not receive message from server\n");
                     return -1;
@@ -145,7 +169,7 @@ int main(int argc, char *argv[]) {
 
     // - - - - -
 
-    close(tcp_listen_fd);
+    close(tcp_server_fd);
 
     log("All OK\n");
     return 0;

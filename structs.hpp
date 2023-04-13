@@ -82,7 +82,7 @@ struct message_from_tcp_t {
     char command[MAX_CMD_SIZE];
     char topic[MAX_TOPIC_LEN];
     char unique_id[MAX_CLIENT_ID_SIZE];
-    int8_t store_and_forward;
+    uint8_t store_and_forward;
 } __attribute__((packed, aligned(1)));
 
 #endif // _WI_STRUCTS_HPP_
