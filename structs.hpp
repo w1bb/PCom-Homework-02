@@ -8,6 +8,8 @@
 #include <cstring>
 #include <string>
 #include <cmath>
+#include <queue>
+#include <map>
 
 #include "net_includes.hpp"
 #include "utils.hpp"
@@ -17,9 +19,11 @@ using namespace std;
 // - - - - -
 
 #define MAX_IP_LEN 16        // At most 255.255.255.255 (15 chars + 1)
-#define MAX_PAYLOAD_LEN 1600
+#define MAX_PAYLOAD_LEN 1500
 #define MAX_TOPIC_LEN 50
 #define MAX_EPOLL_EVENTS 64
+#define MAX_CLIENT_ID_SIZE 11
+#define MAX_CMD_SIZE 12
 
 // - - - - -
 
@@ -45,7 +49,7 @@ struct tcp_message_t {
     // - - - - - - - - - - - - - - - - - - - -
 
     // Provide information for origin
-    void set_from(struct sockaddr_in udp_addr);
+    void set_from(struct sockaddr_in& udp_addr);
 
     // Check validity
     bool check_valid();
@@ -54,10 +58,31 @@ struct tcp_message_t {
 // - - - - -
 
 struct udp_message_t {
+	char topic[MAX_TOPIC_LEN];
     uint8_t message_type;
     char payload[MAX_PAYLOAD_LEN];
 
     tcp_message_t to_tcp();
 };
+
+// - - - - -
+
+struct subscriber_t {
+    // string unique_id;
+    queue<tcp_message_t> to_send;
+    int online_as;
+    map<string, bool> subscriptions;
+
+    subscriber_t();
+};
+
+// - - - - -
+
+struct message_from_tcp_t {
+    char command[MAX_CMD_SIZE];
+    char topic[MAX_TOPIC_LEN];
+    char unique_id[MAX_CLIENT_ID_SIZE];
+    int8_t store_and_forward;
+} __attribute__((packed, aligned(1)));
 
 #endif // _WI_STRUCTS_HPP_

@@ -10,14 +10,20 @@
 
 using namespace std;
 
-// Map between ID and queue
-unordered_map<string, queue<tcp_message_t> > subscriber_queues;
+// Map between topic and IDs
+unordered_map< string, set<string> > subscribers_of;
+
+// Map between ID and subscriber_t
+unordered_map<string, subscriber_t> subscriber_with_id;
+
+// Map between fd and ID
+unordered_map<int, string> id_with_fd;
 
 // This routine is called once a TCP client is connected
 void tcp_client_connected(string user_id) {
-    if (!subscriber_queues[user_id].empty()) {
-        // Each message should be sent
-    }
+    // if (!subscriber_queues[user_id].empty()) {
+    //     // Each message should be sent
+    // }
 }
 
 int main(int argc, char *argv[]) {
@@ -25,6 +31,8 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
     int rc;
+    char buf[2048]{};
+    socklen_t sock_len = sizeof(struct sockaddr);
 
     // - - - - -
 
@@ -93,49 +101,158 @@ int main(int argc, char *argv[]) {
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &event) < 0) {
         log("epoll_ctl - Could not add STDIN_FILENO");
-        return 1;
+        return -1;
     }
     // Add UDP listen
     event.data.fd = udp_listen_fd;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, udp_listen_fd, &event) < 0) {
         log("epoll_ctl - Could not add udp_listen_fd");
-        return 1;
+        return -1;
     }
     // Add TCP listen
     event.data.fd = tcp_listen_fd;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_listen_fd, &event) < 0) {
         log("epoll_ctl - Could not add udp_listen_fd");
-        return 1;
+        return -1;
     }
-    // struct pollfd aux_pollfd;
-    // dynamic_array<struct pollfd> poll_fds;
-    // // Add STDIN
-    // aux_pollfd.fd = STDIN_FILENO;
-    // aux_pollfd.events = POLLIN;
-    // poll_fds.push_back(aux_pollfd);
-    // // Add UDP listen
-    // aux_pollfd.fd = udp_listen_fd;
-    // aux_pollfd.events = POLLIN;
-    // poll_fds.push_back(aux_pollfd);
-    // // Add TCP listen
-    // aux_pollfd.fd = tcp_listen_fd;
-    // aux_pollfd.events = POLLIN;
-    // poll_fds.push_back(aux_pollfd);
     log("Added stdin + UDP + TCP to poll\n");
 
     // - - - - -
+
+    unordered_set<int> connected_tcp_clients;
 
     while (1) {
         // int activity = poll(poll_fds.elems, poll_fds.size(), -1);
         int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
         for (int i = 0; i < num_events; ++i) {
-            if (events[i].events & EPOLLIN) {
-                std::cout << "Input available on stdin" << std::endl;
+            if (!(events[i].events & EPOLLIN))
+                continue;
+
+            // - - - - -
+            
+            // Check for keyboard input
+            if (events[i].data.fd == STDIN_FILENO) {
+                if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
+                    log("[ INPUT ] %s", buf);
+                    // Check if "exit" was typed
+                    if (!strncmp(buf, "exit", 4))
+                        break;
+                }
+            }
+
+            // - - - - -
+            
+            // Check for new TCP connection
+            else if (events[i].data.fd == tcp_listen_fd) {
+                struct sockaddr_in new_client_addr;
+                socklen_t new_client_addr_len = sizeof(new_client_addr);
+                int new_client_fd = accept(
+                    tcp_listen_fd,
+                    (struct sockaddr *)&new_client_addr,
+                    &new_client_addr_len
+                );
+                if (new_client_fd < 0) {
+                    log("accept - Could not accept new TCP connection\n");
+                    return -1;
+                }
+
+                // Check if this connection is valid
+                // TODO
+
+                // Add new connection
+                event.data.fd = new_client_fd;
+                event.events = EPOLLIN | EPOLLET;
+                if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_client_fd, &event) < 0) {
+                    log("epoll_ctl - Could not add new_client_fd (%d)", new_client_fd);
+                    return -1;
+                }
+                connected_tcp_clients.insert(new_client_fd);
+                // TODO - add in subscriber_with_id
+                log("Successful addition of new TCP connection (%s %d)\n",
+                    inet_ntoa(new_client_addr.sin_addr), ntohs(new_client_addr.sin_port));
+            }
+
+            // - - - - -
+            
+            // Check for new UDP message
+            else if (events[i].data.fd == udp_listen_fd) {
+                udp_message_t recv_udp_msg;
+
+                rc = recvfrom(udp_listen_fd, &recv_udp_msg, sizeof(struct udp_message_t),
+                              0, (sockaddr *) &udp_addr, &sock_len);
+                if (rc < 0) {
+                    log("recvfrom - Could not receive UDP message\n");
+                    return -1;
+                }
+                tcp_message_t new_tcp_msg = recv_udp_msg.to_tcp();
+                new_tcp_msg.set_from(udp_addr);
+                
+                if (!new_tcp_msg.check_valid())
+                    continue; // Might need to throw
+                
+                // Check if anyone subscribed
+                if (subscribers_of.find(recv_udp_msg.topic) == subscribers_of.end())
+                    continue;
+
+                for (string subscriber_id : subscribers_of[recv_udp_msg.topic]) {
+                    // Check if said subscriber is even online
+                    if (subscriber_with_id[subscriber_id].online_as >= 0) {
+                        rc = send(
+                            subscriber_with_id[subscriber_id].online_as,
+                            &new_tcp_msg,
+                            sizeof(tcp_message_t),
+                            0
+                        );
+                        if (rc < 0) {
+                            log("send - Could not send topic info to subscriber\n");
+                            return -1;
+                        }
+                    } else if (subscriber_with_id[subscriber_id].subscriptions[recv_udp_msg.topic]) {
+                        subscriber_with_id[subscriber_id].to_send.push(new_tcp_msg);
+                    }
+                }
+            }
+
+            // - - - - -
+            
+            // Check for TCP input
+            else if (connected_tcp_clients.find(events[i].data.fd) != connected_tcp_clients.end()) {
+                rc = recv(events[i].data.fd, &buf, sizeof(buf), 0);
+                if (rc < 0) {
+                    log("recv - Could not receive TCP input\n");
+                    return -1;
+                }
+                
+                if (rc == 0) {
+                    // Disconnect client
+                    string id = id_with_fd[events[i].data.fd];
+                    printf("Client %s disconnected.\n", id.c_str());
+                    subscriber_with_id[id].online_as = -1;
+                    id_with_fd[events[i].data.fd] = -1;
+                    close(events[i].data.fd);
+                } else {
+                    message_from_tcp_t message;
+                    memcpy(&message, &buf, sizeof(message));
+                    string id = string(message.unique_id);
+
+                    if (!strncmp(message.command, "exit", 4))
+                        break;
+                    
+                    if (!strncmp(message.command, "subscribe", 9)) {
+                        subscribers_of[message.topic].insert(id);
+                        subscriber_with_id[id].subscriptions[message.topic]
+                            = message.store_and_forward;
+                    } else if (!strncmp(message.command, "unsubscribe", 11)) {
+                        subscribers_of[message.topic].erase(id);
+                    }
+                }
             }
         }
     }
+
+    // TODO - close all connections
 
     log("All OK\n");
     return 0;

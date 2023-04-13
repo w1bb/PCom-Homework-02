@@ -12,7 +12,7 @@ string msg_type_to_string(int msg_type) {
     return "";
 }
 
-void tcp_message_t::set_from(struct sockaddr_in udp_addr) {
+void tcp_message_t::set_from(struct sockaddr_in& udp_addr) {
     strncpy(this->from_ip, inet_ntoa(udp_addr.sin_addr), MAX_IP_LEN);
     this->from_port = ntohs(udp_addr.sin_port);
 }
@@ -72,4 +72,8 @@ tcp_message_t udp_message_t::to_tcp() {
 
     tcp_message.message_type = this->message_type;
     return tcp_message;
+}
+
+subscriber_t::subscriber_t() {
+    this->online_as = -1;
 }
