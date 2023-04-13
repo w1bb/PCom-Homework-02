@@ -60,6 +60,12 @@ int main(int argc, char *argv[]) {
 	udp_addr.sin_family = AF_INET;
 	udp_addr.sin_port = htons(server_port);
 	udp_addr.sin_addr.s_addr = INADDR_ANY;
+    // Bind
+    rc = bind(udp_listen_fd, (struct sockaddr *) &udp_addr, sock_len);
+	if (rc < 0) {
+        log("bind - UDP bind fail\n");
+        return -1;
+    }
     log("UDP OK\n");
     
     // - - - - -
@@ -82,6 +88,18 @@ int main(int argc, char *argv[]) {
 	tcp_addr.sin_family = AF_INET;
 	tcp_addr.sin_port = htons(server_port);
 	tcp_addr.sin_addr.s_addr = INADDR_ANY;
+    // Bind
+    rc = bind(tcp_listen_fd, (struct sockaddr *) &tcp_addr, sock_len);
+	if (rc < 0) {
+        log("bind - TCP bind fail\n");
+        return -1;
+    }
+    // Listen
+    rc = listen(tcp_listen_fd, MAX_CLIENTS);
+    if (rc < 0) {
+        log("listen - TCP listen fail\n");
+        return -1;
+    }
     log("TCP OK\n");
 
     // - - - - -

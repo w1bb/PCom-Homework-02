@@ -24,6 +24,7 @@ using namespace std;
 #define MAX_EPOLL_EVENTS 64
 #define MAX_CLIENT_ID_SIZE 11
 #define MAX_CMD_SIZE 12
+#define MAX_CLIENTS 64
 
 // - - - - -
 

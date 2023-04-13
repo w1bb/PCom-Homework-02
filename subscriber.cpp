@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     char buf[2048]{};
 
     struct sockaddr_in server_address;
-    memset((char *) &server_address, 0, sizeof(struct sockaddr_in));
+    memset((char *) &server_address, 0, sizeof(server_address));
 
     // - - - - -
 
@@ -24,7 +24,8 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     string id = argv[1];
-    rc = inet_aton(argv[2], &server_address.sin_addr);
+    log("ID OK (%s)\n", id.c_str());
+    rc = inet_pton(AF_INET, argv[2], &server_address.sin_addr);
     if (rc <= 0) {
         log("Wrong server IP address\n");
         return -1;
