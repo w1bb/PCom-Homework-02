@@ -84,6 +84,13 @@ int main(int argc, char *argv[]) {
 	udp_addr.sin_family = AF_INET;
 	udp_addr.sin_port = htons(server_port);
 	udp_addr.sin_addr.s_addr = INADDR_ANY;
+    int reuse_socket_asap = 1;
+    rc = setsockopt(udp_listen_fd, SOL_SOCKET, SO_REUSEADDR,
+                    &reuse_socket_asap , sizeof(int));
+    if (rc < 0) {
+        log("setsockopt - Could not enable fast reallocation\n");
+        return -1;
+    }
     // Bind
     rc = bind(udp_listen_fd, (struct sockaddr *) &udp_addr, sock_len);
 	if (rc < 0) {
@@ -105,6 +112,13 @@ int main(int argc, char *argv[]) {
                     &disable_neagle, sizeof(int));
     if (rc < 0) {
         log("setsockopt - Could not disable Neagle for server\n");
+        return -1;
+    }
+    reuse_socket_asap = 1;
+    rc = setsockopt(tcp_listen_fd, SOL_SOCKET, SO_REUSEADDR,
+                    &reuse_socket_asap , sizeof(int));
+    if (rc < 0) {
+        log("setsockopt - Could not enable fast reallocation\n");
         return -1;
     }
     struct sockaddr_in tcp_addr;

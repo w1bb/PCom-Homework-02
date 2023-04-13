@@ -6,9 +6,21 @@
 #include "structs.hpp"
 #include "utils.hpp"
 
+int tcp_server_fd;
+
+void close_client(int sig) {
+    log("Closing the client (sig = %d)...\n", sig);
+    close(tcp_server_fd);
+    log("All OK\n");
+    exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
     // Disable stdout buffer
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
+    // Treat correctly Ctrl+C
+    signal(SIGINT, close_client);
 
     int rc;
     char buf[2048]{};
@@ -48,7 +60,7 @@ int main(int argc, char *argv[]) {
     // General server connection details
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(server_port);
-    int tcp_server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    tcp_server_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (tcp_server_fd < 0) {
         log("socket - TCP socket fail\n");
         return -1;
@@ -68,14 +80,14 @@ int main(int argc, char *argv[]) {
     int epoll_fd = epoll_create1(0);
     // Add STDIN
     event.data.fd = STDIN_FILENO;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &event) < 0) {
         log("epoll_ctl - Could not add STDIN_FILENO\n");
         return -1;
     }
     // Add TCP listen
     event.data.fd = tcp_server_fd;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_server_fd, &event) < 0) {
         log("epoll_ctl - Could not add tcp_server_fd\n");
         return -1;
@@ -182,8 +194,6 @@ int main(int argc, char *argv[]) {
 
     // - - - - -
 
-    close(tcp_server_fd);
-
-    log("All OK\n");
+    close_client(0);
     return 0;
 }

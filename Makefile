@@ -30,11 +30,11 @@ IP_SERVER = 127.0.0.1
 PORT = 12345
 
 # Run the server
-run_server:
+run_server: server
 	./server ${PORT}
 
 # Run the client
-run_client:
+run_client: subscriber
 	./subscriber abcdef ${IP_SERVER} ${PORT}
 
 # - - - - -
