@@ -9,9 +9,12 @@ LDFLAGS = -lm
 .PHONY: build clean
 
 # Build everything
-build: clean structs.o server subscriber
+build: clean dynamic_array.o structs.o server subscriber
 
 # Build individually
+dynamic_array.o: dynamic_array.cpp
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+
 structs.o: structs.cpp
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 

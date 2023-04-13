@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 
     int rc;
-    
+
     // - - - - -
 
     // Check the number of arguments and save them
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     rc = setsockopt(tcp_listen_fd, IPPROTO_TCP, TCP_NODELAY,
                     &disable_neagle, sizeof(int));
     if (rc < 0) {
-        log("[ server ] setsockopt - Could not disable neagle\n");
+        log("[ server ] setsockopt - Could not disable Neagle\n");
         return -1;
     }
     struct sockaddr_in tcp_addr;
