@@ -33,7 +33,7 @@ void close_server(int sig) {
         if (rc < 0) {
             log("send - Could not send \"stop\" signal to TCP client %d\n", client);
             // No need to force stop now, just ignore
-            // return -1;
+            // exit(EXIT_FAILURE);
         }
     }
     log("All OK\n");
@@ -133,21 +133,21 @@ int main(int argc, char *argv[]) {
     int epoll_fd = epoll_create1(0);
     // Add STDIN
     event.data.fd = STDIN_FILENO;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &event) < 0) {
         log("epoll_ctl - Could not add STDIN_FILENO\n");
         return -1;
     }
     // Add UDP listen
     event.data.fd = udp_listen_fd;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, udp_listen_fd, &event) < 0) {
         log("epoll_ctl - Could not add udp_listen_fd\n");
         return -1;
     }
     // Add TCP listen
     event.data.fd = tcp_listen_fd;
-    event.events = EPOLLIN | EPOLLET;
+    event.events = EPOLLIN;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_listen_fd, &event) < 0) {
         log("epoll_ctl - Could not add tcp_listen_fd\n");
         return -1;
@@ -159,10 +159,10 @@ int main(int argc, char *argv[]) {
     bool forever = true;
 
     while (forever) {
-        int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
+        int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, 0);
         for (int i = 0; i < num_events; ++i) {
-            if (!(events[i].events & EPOLLIN))
-                continue;
+            // if (!(events[i].events & EPOLLIN))
+            //     continue;
 
             // - - - - -
             
@@ -227,7 +227,7 @@ int main(int argc, char *argv[]) {
 
                 // Add new connection
                 event.data.fd = new_client_fd;
-                event.events = EPOLLIN | EPOLLET;
+                event.events = EPOLLIN;
                 if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_client_fd, &event) < 0) {
                     log("epoll_ctl - Could not add new_client_fd (%d)", new_client_fd);
                     return -1;
@@ -335,6 +335,12 @@ int main(int argc, char *argv[]) {
                         subscribers_of[message.topic].erase(id);
                     }
                 }
+            }
+
+            // - - - - -
+
+            else {
+                log("How is this even possible?\n");
             }
         }
     }
