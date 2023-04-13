@@ -12,7 +12,7 @@ struct dynamic_array {
     ~dynamic_array();
 
     uint32_t size();
-    void pushBack(const T& elem);
+    void push_back(const T& elem);
     void remove(uint32_t i);
 
 private:
@@ -45,7 +45,7 @@ uint32_t dynamic_array<T>::size() {
 }
 
 template<typename T>
-void dynamic_array<T>::pushBack(const T& elem) {
+void dynamic_array<T>::push_back(const T& elem) {
     while (this->current_size * this->threshold >= this->capacity) {
         this->capacity *= this->multiplier;
         this->elems = static_cast<T*>(realloc(elems, this->capacity * sizeof(T)));

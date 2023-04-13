@@ -1,9 +1,9 @@
 # Copyright Valentin-Ioan VINTILĂ 2023.
 # All rights reserved.
 
-CC = g++
+CC = g++ 
 CFLAGS = -Wall -Wextra -std=c++17 -DLOG_ENABLE # Uncomment for debugging
-LDFLAGS = -lm
+LDFLAGS = -lm 
 
 # Non-files
 .PHONY: build clean
@@ -14,7 +14,7 @@ build: clean structs.o server subscriber
 # Build individually
 
 structs.o: structs.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
 server: server.cpp structs.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
