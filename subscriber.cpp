@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
                         }
                         printf("Unsubscribed from topic.\n");
                     }
-                    log("Sending a '%s %s %" SCNu8,
+                    log("Sending a '%s %s %" SCNu8 "'\n",
                         message.command,
                         message.topic,
                         message.store_and_forward);

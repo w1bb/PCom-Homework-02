@@ -3,6 +3,7 @@
 
 // TODO - update to something else
 #include <bits/stdc++.h>
+#include <signal.h>
 
 #include "dynamic_array.hpp"
 #include "structs.hpp"
@@ -19,9 +20,32 @@ unordered_map<string, subscriber_t> subscriber_with_id;
 // Map between fd and ID
 unordered_map<int, string> id_with_fd;
 
+// A set of all the connected subscribers
+unordered_set<int> connected_tcp_clients;
+
+void close_server(int sig) {
+    log("Closing the server (sig = %d)...\n", sig);
+    for (auto client : connected_tcp_clients) {
+        tcp_message_t stop_message;
+        memset(stop_message.topic, 0, MAX_TOPIC_LEN);
+        strcpy(stop_message.topic, "stop");
+        int rc = send(client, (char *) &stop_message, sizeof(stop_message), 0);
+        if (rc < 0) {
+            log("send - Could not send \"stop\" signal to TCP client %d\n", client);
+            // No need to force stop now, just ignore
+            // return -1;
+        }
+    }
+    log("All OK\n");
+    exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
     // Disable stdout buffer
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
+    // Treat correctly Ctrl+C
+    signal(SIGINT, close_server);
 
     int rc;
     char buf[2048]{};
@@ -132,7 +156,6 @@ int main(int argc, char *argv[]) {
 
     // - - - - -
 
-    unordered_set<int> connected_tcp_clients;
     bool forever = true;
 
     while (forever) {
@@ -234,8 +257,8 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
                 tcp_message_t new_tcp_msg = recv_udp_msg.to_tcp();
-                log("TCP payload set to '%s'\n", new_tcp_msg.payload);
-                log("TCP topic set to '%s'\n", new_tcp_msg.topic);
+                // log("TCP payload set to '%s'\n", new_tcp_msg.payload);
+                // log("TCP topic set to '%s'\n", new_tcp_msg.topic);
                 
                 new_tcp_msg.set_from(udp_addr);
                 
@@ -246,13 +269,17 @@ int main(int argc, char *argv[]) {
                 
                 // Check if anyone subscribed
                 if (subscribers_of.find(recv_udp_msg.topic) == subscribers_of.end()) {
-                    log("Note: no subscribers found!\n");
+                    // log("Note: no subscribers found!\n");
                     continue;
                 }
+
+                log("TCP payload set to '%s'\n", new_tcp_msg.payload);
+                log("TCP topic set to '%s'\n", new_tcp_msg.topic);
 
                 for (string subscriber_id : subscribers_of[recv_udp_msg.topic]) {
                     // Check if said subscriber is even online
                     if (subscriber_with_id[subscriber_id].online_as >= 0) {
+                        log("Sending NOW to %s\n", subscriber_id.c_str());
                         rc = send(
                             subscriber_with_id[subscriber_id].online_as,
                             &new_tcp_msg,
@@ -264,6 +291,7 @@ int main(int argc, char *argv[]) {
                             return -1;
                         }
                     } else if (subscriber_with_id[subscriber_id].subscriptions[recv_udp_msg.topic]) {
+                        log("Sending LATER to %s\n", subscriber_id.c_str());
                         subscriber_with_id[subscriber_id].to_send.push(new_tcp_msg);
                     }
                 }
@@ -313,18 +341,6 @@ int main(int argc, char *argv[]) {
 
     // - - - - -
 
-    for (auto client : connected_tcp_clients) {
-        tcp_message_t stop_message;
-        memset(stop_message.topic, 0, MAX_TOPIC_LEN);
-        strcpy(stop_message.topic, "stop");
-        rc = send(client, (char *) &stop_message, sizeof(stop_message), 0);
-        if (rc < 0) {
-            log("send - Could not send \"stop\" signal to TCP client %d\n", client);
-            // No need to force stop now, just ignore
-            // return -1;
-        }
-    }
-
-    log("All OK\n");
-    return 0;
+    close_server(0);
+    return 0; // unreachable
 }
