@@ -6,5 +6,7 @@
 #include "utils.hpp"
 
 int main() {
+    setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
     return 0;
 }

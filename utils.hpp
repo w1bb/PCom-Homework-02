@@ -4,7 +4,7 @@
 #ifndef _WI_UTILS_HPP_
 #define _WI_UTILS_HPP_
 
-#include <stdio.h>
+#include <cstdio>
 
 // Logging capabilities
 #ifdef LOG_ENABLE
