@@ -11,7 +11,7 @@ LDFLAGS = -lm
 # - - - - -
 
 # Build everything
-build: clean structs.o server subscriber
+build: structs.o server subscriber
 
 # Build individually
 structs.o: structs.cpp

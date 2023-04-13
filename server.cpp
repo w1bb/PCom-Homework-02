@@ -214,6 +214,10 @@ int main(int argc, char *argv[]) {
                 id_with_fd[new_client_fd] = id;
                 log("Successful addition of new TCP connection (%s %d)\n",
                     inet_ntoa(new_client_addr.sin_addr), ntohs(new_client_addr.sin_port));
+                printf("New client %s connected from %s:%u.\n",
+                       id.c_str(),
+                       inet_ntoa(new_client_addr.sin_addr),
+                       ntohs(new_client_addr.sin_port));
             }
 
             // - - - - -
