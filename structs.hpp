@@ -54,7 +54,7 @@ struct tcp_message_t {
 
     // Check validity
     bool check_valid();
-};
+} __attribute__((packed, aligned(1)));
 
 // - - - - -
 
@@ -84,6 +84,8 @@ struct message_from_tcp_t {
     char topic[MAX_TOPIC_LEN];
     char unique_id[MAX_CLIENT_ID_SIZE];
     uint8_t store_and_forward;
+
+    // message_from_tcp_t();
 } __attribute__((packed, aligned(1)));
 
 #endif // _WI_STRUCTS_HPP_

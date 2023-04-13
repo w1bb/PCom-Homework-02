@@ -171,6 +171,7 @@ int main(int argc, char *argv[]) {
             // Check for new server message
             else if (events[i].data.fd == tcp_server_fd) {
                 tcp_message_t message_from_server;
+                memset(&message_from_server, 0, sizeof(message_from_server));
                 rc = recv(tcp_server_fd, &message_from_server, sizeof(message_from_server), 0);
                 if (rc < 0) {
                     log("recv - Could not receive message from server\n");
@@ -182,7 +183,7 @@ int main(int argc, char *argv[]) {
                     break;
                 }
                 
-                printf("%s:%hu - %s - %s - %s\n",
+                printf("%s:%u - %s - %s - %s\n",
                        message_from_server.from_ip,
                        message_from_server.from_port,
                        message_from_server.topic,
@@ -195,5 +196,5 @@ int main(int argc, char *argv[]) {
     // - - - - -
 
     close_client(0);
-    return 0;
+    return 0; // unreachable
 }

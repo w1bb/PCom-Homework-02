@@ -263,8 +263,9 @@ int main(int argc, char *argv[]) {
             else if (events[i].data.fd == udp_listen_fd) {
                 log("Received UDP message\n");
                 udp_message_t recv_udp_msg;
+                memset(&recv_udp_msg, 0, sizeof(recv_udp_msg));
 
-                rc = recvfrom(udp_listen_fd, &recv_udp_msg, sizeof(struct udp_message_t),
+                rc = recvfrom(udp_listen_fd, &recv_udp_msg, sizeof(recv_udp_msg),
                               0, (sockaddr *) &udp_addr, &sock_len);
                 if (rc < 0) {
                     log("recvfrom - Could not receive UDP message\n");
@@ -297,7 +298,7 @@ int main(int argc, char *argv[]) {
                         rc = send(
                             subscriber_with_id[subscriber_id].online_as,
                             &new_tcp_msg,
-                            sizeof(tcp_message_t),
+                            sizeof(new_tcp_msg),
                             0
                         );
                         if (rc < 0) {
@@ -315,7 +316,8 @@ int main(int argc, char *argv[]) {
             
             // Check for TCP input
             else if (connected_tcp_clients.find(events[i].data.fd) != connected_tcp_clients.end()) {
-                rc = recv(events[i].data.fd, &buf, sizeof(buf), 0);
+                memset(buf, 0, sizeof(buf));
+                rc = recv(events[i].data.fd, buf, sizeof(buf), 0);
                 if (rc < 0) {
                     log("recv - Could not receive TCP input\n");
                     return -1;
@@ -334,7 +336,7 @@ int main(int argc, char *argv[]) {
                     close(events[i].data.fd);
                 } else {
                     message_from_tcp_t message;
-                    memcpy(&message, &buf, sizeof(message));
+                    memcpy(&message, buf, sizeof(message));
                     string id = string(message.unique_id);
 
                     if (!strncmp(message.command, "exit", 4))

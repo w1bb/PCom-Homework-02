@@ -66,6 +66,8 @@ tcp_message_t udp_message_t::to_tcp() {
     } else if (this->message_type == MSG_TYPE_STRING) {
         size_t payload_len = strlen(this->payload);
         strncpy(tcp_message.payload, this->payload, payload_len);
+        if (payload_len < sizeof(tcp_message.payload))
+            tcp_message.payload[payload_len] = '\0';
     } else {
         log("[ udp_message_t::to_tcp() ] Invalid message_type (%u)", this->message_type);
     }
@@ -78,3 +80,10 @@ tcp_message_t udp_message_t::to_tcp() {
 subscriber_t::subscriber_t() {
     this->online_as = -1;
 }
+
+// message_from_tcp_t::message_from_tcp_t() {
+//     memset(this->command, 0, sizeof(command));
+//     memset(this->topic, 0, sizeof(command));
+//     memset(this->unique_id, 0, sizeof(command));
+//     this->store_and_forward = 0;
+// }

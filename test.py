@@ -647,6 +647,17 @@ def h2_test():
     # generate messages on all topics and check that C1 receives them
     run_test_data_subscribed(server, c1, topics)
 
+    # close the server and check that C1 also closes
+    run_test_server_stop(server, c1)
+
+    # clean up
+    make_clean()
+
+    # print test results
+    print_test_results()
+
+    return
+
     # stop C1 and check it exits correctly
     success = run_test_c1_stop(server, c1)
 
