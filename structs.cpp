@@ -70,6 +70,7 @@ tcp_message_t udp_message_t::to_tcp() {
         log("[ udp_message_t::to_tcp() ] Invalid message_type (%u)", this->message_type);
     }
 
+    memcpy(tcp_message.topic, this->topic, strlen(this->topic) + 1);
     tcp_message.message_type = this->message_type;
     return tcp_message;
 }

@@ -64,7 +64,7 @@ struct udp_message_t {
     char payload[MAX_PAYLOAD_LEN];
 
     tcp_message_t to_tcp();
-};
+} __attribute__((packed, aligned(1)));
 
 // - - - - -
 

@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     struct sockaddr_in udp_addr;
-    memset((char *) &udp_addr, 0, sizeof(sockaddr_in));
+    memset((char *) &udp_addr, 0, sizeof(udp_addr));
 	udp_addr.sin_family = AF_INET;
 	udp_addr.sin_port = htons(server_port);
 	udp_addr.sin_addr.s_addr = INADDR_ANY;
@@ -111,21 +111,21 @@ int main(int argc, char *argv[]) {
     event.data.fd = STDIN_FILENO;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &event) < 0) {
-        log("epoll_ctl - Could not add STDIN_FILENO");
+        log("epoll_ctl - Could not add STDIN_FILENO\n");
         return -1;
     }
     // Add UDP listen
     event.data.fd = udp_listen_fd;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, udp_listen_fd, &event) < 0) {
-        log("epoll_ctl - Could not add udp_listen_fd");
+        log("epoll_ctl - Could not add udp_listen_fd\n");
         return -1;
     }
     // Add TCP listen
     event.data.fd = tcp_listen_fd;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_listen_fd, &event) < 0) {
-        log("epoll_ctl - Could not add udp_listen_fd");
+        log("epoll_ctl - Could not add tcp_listen_fd\n");
         return -1;
     }
     log("Added stdin + UDP + TCP to poll\n");
@@ -224,6 +224,7 @@ int main(int argc, char *argv[]) {
             
             // Check for new UDP message
             else if (events[i].data.fd == udp_listen_fd) {
+                log("Received UDP message\n");
                 udp_message_t recv_udp_msg;
 
                 rc = recvfrom(udp_listen_fd, &recv_udp_msg, sizeof(struct udp_message_t),
@@ -233,14 +234,21 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
                 tcp_message_t new_tcp_msg = recv_udp_msg.to_tcp();
+                log("TCP payload set to '%s'\n", new_tcp_msg.payload);
+                log("TCP topic set to '%s'\n", new_tcp_msg.topic);
+                
                 new_tcp_msg.set_from(udp_addr);
                 
-                if (!new_tcp_msg.check_valid())
+                if (!new_tcp_msg.check_valid()) {
+                    log("Invalid TCP message\n");
                     continue; // Might need to throw
+                }
                 
                 // Check if anyone subscribed
-                if (subscribers_of.find(recv_udp_msg.topic) == subscribers_of.end())
+                if (subscribers_of.find(recv_udp_msg.topic) == subscribers_of.end()) {
+                    log("Note: no subscribers found!\n");
                     continue;
+                }
 
                 for (string subscriber_id : subscribers_of[recv_udp_msg.topic]) {
                     // Check if said subscriber is even online
@@ -291,6 +299,7 @@ int main(int argc, char *argv[]) {
                         break; // TODO - this might be useless
                     
                     if (!strncmp(message.command, "subscribe", 9)) {
+                        log("Subscribing to '%s'\n", message.topic);
                         subscribers_of[message.topic].insert(id);
                         subscriber_with_id[id].subscriptions[message.topic]
                             = message.store_and_forward;

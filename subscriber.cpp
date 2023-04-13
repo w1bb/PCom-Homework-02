@@ -70,14 +70,14 @@ int main(int argc, char *argv[]) {
     event.data.fd = STDIN_FILENO;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, STDIN_FILENO, &event) < 0) {
-        log("epoll_ctl - Could not add STDIN_FILENO");
+        log("epoll_ctl - Could not add STDIN_FILENO\n");
         return -1;
     }
     // Add TCP listen
     event.data.fd = tcp_server_fd;
     event.events = EPOLLIN | EPOLLET;
     if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, tcp_server_fd, &event) < 0) {
-        log("epoll_ctl - Could not add tcp_server_fd");
+        log("epoll_ctl - Could not add tcp_server_fd\n");
         return -1;
     }
     log("Added stdin + server to poll\n");
@@ -124,10 +124,11 @@ int main(int argc, char *argv[]) {
                     message_from_tcp_t message;
                     strcpy(message.unique_id, id.c_str());
                     if (!strncmp(buf, "subscribe", 9)) {
-                        sscanf("%s %s %" SCNu8,
+                        sscanf(buf,
+                               "%s %s %" SCNu8,
                                message.command,
                                message.topic,
-                               message.store_and_forward);
+                               &message.store_and_forward);
                         rc = send(tcp_server_fd, &message, sizeof(message), 0);
                         if (rc < 0) {
                             log("send - Could not send message to server\n");
@@ -135,7 +136,8 @@ int main(int argc, char *argv[]) {
                         }
                         printf("Subscribed to topic.\n");
                     } else if (!strncmp(buf, "unsubscribe", 11)) {
-                        sscanf("%s %s %" SCNu8,
+                        sscanf(buf,
+                               "%s %s",
                                message.command,
                                message.topic);
                         rc = send(tcp_server_fd, &message, sizeof(message), 0);
@@ -145,6 +147,10 @@ int main(int argc, char *argv[]) {
                         }
                         printf("Unsubscribed from topic.\n");
                     }
+                    log("Sending a '%s %s %" SCNu8,
+                        message.command,
+                        message.topic,
+                        message.store_and_forward);
                 }
             }
 
