@@ -1,8 +1,12 @@
+// Copyright Valentin-Ioan VINTILĂ 2023.
+// All rights reserved.
+
 #ifndef _WI_STRUCTS_HPP_
 #define _WI_STRUCTS_HPP_
 
 #include <cstdint>
 #include <cstring>
+#include <string>
 #include <cmath>
 
 #include "net_includes.hpp"
@@ -23,6 +27,8 @@ using namespace std;
 #define MSG_TYPE_FLOAT 2
 #define MSG_TYPE_STRING 3
 
+string msg_type_to_string(int msg_type);
+
 // - - - - -
 
 struct tcp_message_t {
@@ -39,6 +45,9 @@ struct tcp_message_t {
 
     // Provide information for origin
     void set_from(struct sockaddr_in udp_addr);
+
+    // Check validity
+    bool check_valid();
 };
 
 // - - - - -

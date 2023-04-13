@@ -1,8 +1,27 @@
 #include "structs.hpp"
 
+string msg_type_to_string(int msg_type) {
+    if (msg_type == MSG_TYPE_INT)
+        return "INT";
+    if (msg_type == MSG_TYPE_SHORT_REAL)
+        return "SHORT_REAL";
+    if (msg_type == MSG_TYPE_FLOAT)
+        return "FLOAT";
+    if (msg_type == MSG_TYPE_STRING)
+        return "STRING";
+    return "";
+}
+
 void tcp_message_t::set_from(struct sockaddr_in udp_addr) {
     strncpy(this->from_ip, inet_ntoa(udp_addr.sin_addr), MAX_IP_LEN);
     this->from_port = ntohs(udp_addr.sin_port);
+}
+
+bool tcp_message_t::check_valid() {
+    return (this->message_type == MSG_TYPE_INT) ||
+           (this->message_type == MSG_TYPE_SHORT_REAL) ||
+           (this->message_type == MSG_TYPE_FLOAT) ||
+           (this->message_type == MSG_TYPE_STRING);
 }
 
 tcp_message_t udp_message_t::to_tcp() {
