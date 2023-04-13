@@ -231,6 +231,10 @@ int main(int argc, char *argv[]) {
                     printf("Client %s disconnected.\n", id.c_str());
                     subscriber_with_id[id].online_as = -1;
                     id_with_fd[events[i].data.fd] = -1;
+                    if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, events[i].data.fd, nullptr) < 0) {
+                        log("epoll_ctl - Could not remove connection\n");
+                        return -1;
+                    }
                     close(events[i].data.fd);
                 } else {
                     message_from_tcp_t message;
@@ -251,6 +255,8 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+
+    // - - - - -
 
     for (auto client : connected_tcp_clients) {
         tcp_message_t stop_message;
