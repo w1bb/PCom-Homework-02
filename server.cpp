@@ -4,6 +4,7 @@
 // TODO - update to something else
 #include <bits/stdc++.h>
 
+#include "dynamic_array.hpp"
 #include "structs.hpp"
 #include "utils.hpp"
 
@@ -78,6 +79,10 @@ int main(int argc, char *argv[]) {
 	tcp_addr.sin_family = AF_INET;
 	tcp_addr.sin_port = htons(server_port);
 	tcp_addr.sin_addr.s_addr = INADDR_ANY;
+
+    // - - - - -
+    
+    dynamic_array<float> poll_fds;
 
     return 0;
 }
