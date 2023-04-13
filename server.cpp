@@ -19,13 +19,6 @@ unordered_map<string, subscriber_t> subscriber_with_id;
 // Map between fd and ID
 unordered_map<int, string> id_with_fd;
 
-// This routine is called once a TCP client is connected
-void tcp_client_connected(string user_id) {
-    // if (!subscriber_queues[user_id].empty()) {
-    //     // Each message should be sent
-    // }
-}
-
 int main(int argc, char *argv[]) {
     // Disable stdout buffer
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
@@ -81,7 +74,7 @@ int main(int argc, char *argv[]) {
     rc = setsockopt(tcp_listen_fd, IPPROTO_TCP, TCP_NODELAY,
                     &disable_neagle, sizeof(int));
     if (rc < 0) {
-        log("setsockopt - Could not disable Neagle\n");
+        log("setsockopt - Could not disable Neagle for server\n");
         return -1;
     }
     struct sockaddr_in tcp_addr;
@@ -157,9 +150,37 @@ int main(int argc, char *argv[]) {
                     log("accept - Could not accept new TCP connection\n");
                     return -1;
                 }
+                disable_neagle = 1;
+                rc = setsockopt(new_client_fd, IPPROTO_TCP, TCP_NODELAY,
+                                &disable_neagle, sizeof(int));
+                if (rc < 0) {
+                    log("setsockopt - Could not disable Neagle for client\n");
+                    return -1;
+                }
 
-                // Check if this connection is valid
-                // TODO
+                // Get the expected ID
+                memset(buf, 0, sizeof(buf));
+                rc = recv(new_client_fd, buf, sizeof(buf), 0);
+                if (rc < 0) {
+                    log("recv - Could not receive TCP client initial message\n");
+                    return -1;
+                }
+                string id = string(buf);
+
+                // Check if the ID is already in use
+                if (subscriber_with_id[id].online_as >= 0) {
+                    printf("Client %s already connected.\n", id.c_str());
+                    // Close connection instead
+                    tcp_message_t stop_message;
+                    memset(stop_message.topic, 0, MAX_TOPIC_LEN);
+                    strcpy(stop_message.topic, "stop");
+                    rc = send(new_client_fd, (char *) &stop_message, sizeof(stop_message), 0);
+                    if (rc < 0) {
+                        log("send - Could not send \"stop\" signal to TCP client %d\n", new_client_fd);
+                        return -1;
+                    }
+                    continue;
+                }
 
                 // Add new connection
                 event.data.fd = new_client_fd;
@@ -169,7 +190,8 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
                 connected_tcp_clients.insert(new_client_fd);
-                // TODO - add in subscriber_with_id
+                subscriber_with_id[id].online_as = new_client_fd;
+                id_with_fd[new_client_fd] = id;
                 log("Successful addition of new TCP connection (%s %d)\n",
                     inet_ntoa(new_client_addr.sin_addr), ntohs(new_client_addr.sin_port));
             }
