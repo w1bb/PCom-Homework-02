@@ -50,4 +50,4 @@ clean:
 
 # Pack everything nicely
 pack:
-	exit
+	zip vvi_tema2_pcom.zip *.cpp *.hpp Makefile readme.txt
