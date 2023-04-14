@@ -187,10 +187,12 @@ int main(int argc, char *argv[]) {
                     break;
                 }
                 
+                strncpy(buf, message_from_server.topic, MAX_TOPIC_LEN);
+                buf[MAX_TOPIC_LEN] = '\0';
                 printf("%s:%u - %s - %s - %s\n",
                        message_from_server.from_ip,
                        message_from_server.from_port,
-                       message_from_server.topic,
+                       buf,
                        msg_type_to_string(message_from_server.message_type).c_str(),
                        message_from_server.payload);
             }

@@ -100,7 +100,7 @@ class Topic:
     ret.append(Topic("a_subunitary_float", "FLOAT", "0.042"))
     ret.append(Topic("a_negative_subunitary_float", "FLOAT", "-0.042"))
     ret.append(Topic("ana_string_announce", "STRING", "Ana are mere"))
-    # ret.append(Topic("huge_string", "STRING", "abcdefghijklmnopqrstuvwxyz"))
+    ret.append(Topic("huge_string", "STRING", "abcdefghijklmnopqrstuvwxyz"))
     return ret
 
 ####### Process utils#######
@@ -149,9 +149,7 @@ class Process:
     if self.started:
       with timeout(tout):
         try:
-          aux = self.proc.stdout.readline()
-          print(f"Just read: \"{aux}\"")
-          return aux
+          return self.proc.stdout.readline()
         except TimeoutError as e:
           return "timeout"
     else:
@@ -648,17 +646,6 @@ def h2_test():
 
     # generate messages on all topics and check that C1 receives them
     run_test_data_subscribed(server, c1, topics)
-
-    # close the server and check that C1 also closes
-    run_test_server_stop(server, c1)
-
-    # clean up
-    make_clean()
-
-    # print test results
-    print_test_results()
-
-    return
 
     # stop C1 and check it exits correctly
     success = run_test_c1_stop(server, c1)
