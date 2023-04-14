@@ -1,9 +1,9 @@
 // Copyright Valentin-Ioan VINTILĂ 2023.
 // All rights reserved.
 
-// TODO - update to something else
-#include <bits/stdc++.h>
-#include <signal.h>
+#include <unordered_map>
+#include <unordered_set>
+#include <cstdio>
 
 #include "dynamic_array.hpp"
 #include "structs.hpp"
@@ -12,7 +12,7 @@
 using namespace std;
 
 // Map between topic and IDs
-unordered_map< string, set<string> > subscribers_of;
+unordered_map< string, unordered_set<string> > subscribers_of;
 
 // Map between ID and subscriber_t
 unordered_map<string, subscriber_t> subscriber_with_id;
@@ -174,12 +174,7 @@ int main(int argc, char *argv[]) {
 
     while (forever) {
         int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, 0);
-        for (int i = 0; i < num_events; ++i) {
-            // if (!(events[i].events & EPOLLIN))
-            //     continue;
-
-            // - - - - -
-            
+        for (int i = 0; i < num_events; ++i) {            
             // Check for keyboard input
             if (events[i].data.fd == STDIN_FILENO) {
                 if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
@@ -285,8 +280,8 @@ int main(int argc, char *argv[]) {
                     return -1;
                 }
                 tcp_message_t new_tcp_msg = recv_udp_msg.to_tcp();
-                // log("TCP payload set to '%s'\n", new_tcp_msg.payload);
-                // log("TCP topic set to '%s'\n", new_tcp_msg.topic);
+                log("TCP payload set to '%s'\n", new_tcp_msg.payload);
+                log("TCP topic set to '%s'\n", new_tcp_msg.topic);
                 
                 new_tcp_msg.set_from(udp_addr);
                 
@@ -298,10 +293,8 @@ int main(int argc, char *argv[]) {
                 // Check if anyone subscribed
                 strncpy(buf, recv_udp_msg.topic, MAX_TOPIC_LEN);
                 buf[MAX_TOPIC_LEN] = '\0';
-                if (subscribers_of.find(buf) == subscribers_of.end()) {
-                    // log("Note: no subscribers found!\n");
+                if (subscribers_of.find(buf) == subscribers_of.end())
                     continue;
-                }
 
                 log("TCP payload set to '%s'\n", new_tcp_msg.payload);
                 log("TCP topic set to '%s'\n", buf);
@@ -354,9 +347,6 @@ int main(int argc, char *argv[]) {
                     memcpy(&message, buf, sizeof(message));
                     string id = string(message.unique_id);
 
-                    if (!strncmp(message.command, "exit", 4))
-                        break; // TODO - this might be useless
-                    
                     if (!strncmp(message.command, "subscribe", 9)) {
                         strncpy(buf, message.topic, MAX_TOPIC_LEN);
                         buf[sizeof(message.topic)] = '\0';
@@ -373,7 +363,7 @@ int main(int argc, char *argv[]) {
             // - - - - -
 
             else {
-                log("How is this even possible?\n");
+                log("An event was NOT taken care of\n");
             }
         }
     }

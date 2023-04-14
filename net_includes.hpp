@@ -6,3 +6,4 @@
 #include <sys/types.h>
 #include <sys/poll.h>
 #include <sys/epoll.h>
+#include <signal.h>
