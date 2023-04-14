@@ -4,18 +4,24 @@
 #ifndef _WI_UTILS_HPP_
 #define _WI_UTILS_HPP_
 
-#include <cstdio>
-#include <chrono>
-#include <ctime>
-#include <iomanip>
+// Standard
 #include <sstream>
 #include <vector>
 #include <string>
 
 using namespace std;
 
+// - - - - -
+
 // Logging capabilities
 #ifdef LOG_ENABLE
+
+// Additional standard libraries
+#include <iomanip>
+#include <chrono>
+#include <cstdio>
+#include <ctime>
+
 #define log(args...) \
     do { \
         using namespace std::chrono; \

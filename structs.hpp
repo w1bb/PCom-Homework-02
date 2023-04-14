@@ -4,15 +4,27 @@
 #ifndef _WI_STRUCTS_HPP_
 #define _WI_STRUCTS_HPP_
 
+// Standard
+#include <unordered_map>
 #include <cstdint>
-#include <vector>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <cmath>
 #include <queue>
-#include <map>
 
-#include "net_includes.hpp"
+// Networking & singaling
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/poll.h>
+#include <sys/epoll.h>
+#include <signal.h>
+
+// Other
 #include "utils.hpp"
 
 using namespace std;
@@ -73,7 +85,7 @@ struct udp_message_t {
 struct subscriber_t {
     queue<tcp_message_t> to_send;
     int online_as;
-    map<string, bool> subscriptions;
+    unordered_map<string, bool> subscriptions;
 
     // - - - - -
 

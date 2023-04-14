@@ -1,8 +1,10 @@
 // Copyright Valentin-Ioan VINTILĂ 2023.
 // All rights reserved.
 
-#include <bits/stdc++.h>
+// Standard
+#include <cstdio>
 
+// Other
 #include "structs.hpp"
 #include "utils.hpp"
 
@@ -12,6 +14,7 @@ using namespace std;
 
 int tcp_server_fd;
 
+// Close the client peacefully
 void close_client(int sig) {
     sig = sig; // Remove warning
     log("Closing the client (sig = %d)...\n", sig);
@@ -20,6 +23,7 @@ void close_client(int sig) {
     exit(EXIT_SUCCESS);
 }
 
+// Client entrypoint
 int main(int argc, char *argv[]) {
     // Disable stdout buffer
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);

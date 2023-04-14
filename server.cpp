@@ -1,10 +1,11 @@
 // Copyright Valentin-Ioan VINTILĂ 2023.
 // All rights reserved.
 
-#include <unordered_map>
+// Standard
 #include <unordered_set>
 #include <cstdio>
 
+// Other
 #include "structs.hpp"
 #include "utils.hpp"
 
@@ -24,6 +25,7 @@ unordered_map<int, string> id_with_fd;
 // A set of all the connected subscribers
 unordered_set<int> connected_tcp_clients;
 
+// Close the server peacefully
 void close_server(int sig) {
     sig = sig; // Remove warning
     log("Closing the server (sig = %d)...\n", sig);
@@ -35,13 +37,16 @@ void close_server(int sig) {
         if (rc < 0) {
             log("send - Could not send \"stop\" signal to TCP client %d\n", client);
             // No need to force stop now, just ignore
-            // exit(EXIT_FAILURE);
+#ifdef FORCE_EXIT_ON_CLIENT_NO_STOP
+            exit(EXIT_FAILURE);
+#endif
         }
     }
     log("All OK\n");
     exit(EXIT_SUCCESS);
 }
 
+// Server entrypoint
 int main(int argc, char *argv[]) {
     // Disable stdout buffer
     setvbuf(stdout, NULL, _IONBF, BUFSIZ);
