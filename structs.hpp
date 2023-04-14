@@ -31,10 +31,11 @@ using namespace std;
 
 // - - - - -
 
+#define INITIAL_MAX_EPOLL_EVENTS 64
+
 #define MAX_IP_LEN 16 // At most 255.255.255.255 (15 chars + 1)
 #define MAX_PAYLOAD_LEN 1500
 #define MAX_TOPIC_LEN 50
-#define MAX_EPOLL_EVENTS 64
 #define MAX_CLIENT_ID_SIZE 11
 #define MAX_CMD_SIZE 12
 

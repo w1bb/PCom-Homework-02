@@ -48,6 +48,6 @@ clean:
 
 # - - - - -
 
-# TODO
+# Pack everything nicely
 pack:
 	exit

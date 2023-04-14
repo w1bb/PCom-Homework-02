@@ -85,7 +85,14 @@ int main(int argc, char *argv[]) {
     // - - - - -
 
     // Generate epoll
-    struct epoll_event event, events[MAX_EPOLL_EVENTS];
+    struct epoll_event event;
+    struct epoll_event *events;
+    int events_len = INITIAL_MAX_EPOLL_EVENTS;
+    events = (epoll_event*)malloc(events_len * sizeof(struct epoll_event));
+    if (!events) {
+        log("malloc - Could not allocate memory for events\n");
+        return -1;
+    }
     int epoll_fd = epoll_create1(0);
     // Add STDIN
     event.data.fd = STDIN_FILENO;
@@ -125,13 +132,8 @@ int main(int argc, char *argv[]) {
     bool forever = true;
     
     while (forever) {
-        int num_events = epoll_wait(epoll_fd, events, MAX_EPOLL_EVENTS, -1);
+        int num_events = epoll_wait(epoll_fd, events, events_len, 0);
         for (int i = 0; i < num_events; ++i) {
-            if (!(events[i].events & EPOLLIN))
-                continue;
-
-            // - - - - -
-            
             // Check for keyboard input
             if (events[i].data.fd == STDIN_FILENO) {
                 if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
@@ -204,6 +206,19 @@ int main(int argc, char *argv[]) {
                        buf,
                        msg_type_to_string(message_from_server.message_type).c_str(),
                        message_from_server.payload);
+            }
+        }
+
+        if (events_len == num_events) {
+            // Try to double it
+            struct epoll_event *new_events;
+            new_events = (epoll_event*)realloc(events, events_len * 2);
+            // If attempt failed, log but IGNORE!
+            if (!new_events) {
+                log("realloc - Could not double events. Ignoring...\n");
+            } else {
+                events = new_events;
+                events_len *= 2;
             }
         }
     }
