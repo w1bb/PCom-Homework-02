@@ -1,3 +1,6 @@
+// Copyright Valentin-Ioan VINTILĂ 2023.
+// All rights reserved.
+
 #include "structs.hpp"
 
 string msg_type_to_string(uint8_t msg_type) {

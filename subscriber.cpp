@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
     bool forever = true;
     
     while (forever) {
-        int num_events = epoll_wait(epoll_fd, events, events_len, 0);
+        int num_events = epoll_wait(epoll_fd, events, events_len, -1);
         for (int i = 0; i < num_events; ++i) {
             // Check for keyboard input
             if (events[i].data.fd == STDIN_FILENO) {

@@ -1,0 +1,48 @@
+Valentin-Ioan VINTILĂ (323CA)
+-----------------------------
+
+    My homework implements a simple C++ application which allows UDP clients to
+connect to a server that acts like a broker, communicating with TCP subscribers.
+    The implementation is written in modern C++ (C++ 17) and contains some
+useful extra features, such as logging capabilities and gracefully quiting when
+Ctrl+C is pressed (SIGINT).
+
+
+File structure
+==============
+
+    The files are organized as presented bellow (in alphabetical order):
+
+    > Makefile
+        : A complete makefile, containing all the necessary building rules, as
+        : well as testing and cleaning rules.
+    > readme.txt
+        : This file, a tour of the project.
+    > server.cpp
+        : This is the TCP/UDP server that shall act as a broker.
+    > structs.hpp + struct.cpp
+        : These files contain the structures that will be used to send messages
+        : back and forth.
+    > subscriber.cpp
+        : This is the TCP client (subscriber) that shall receive the data
+        : provided by the other UDP clients.
+    > utils.hpp + utils.cpp
+        : These files contain the logging implementation and a simple way to
+        : break a string into commands.
+
+Special features
+================
+
+    As it was previously stated, some additional features were implemented as
+well, including (but not limited to):
+
+    > Logging capabilities
+        : This allows for quick and easy development. In order to turn this
+        : feature ON, please modify the Makefile by uncommenting the
+        : -DLOG_ENABLE flag.
+    > Ctrl+C (SIGINT) guard
+        : This features disables the default behaviour of SIGINT so that it
+        : can gracefully disconnect all the clients and close down the server.
+    > Input sanitization
+        : The user should not be able to break the server when communicating
+        : with it.

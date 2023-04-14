@@ -275,6 +275,10 @@ int main(int argc, char *argv[]) {
                         sizeof(new_tcp_msg),
                         0
                     );
+                    if (rc < 0) {
+                        log("send - Could not send message to client\n");
+                        return -1;
+                    }
                     subscriber_with_id[id].to_send.pop();
                 }
             }
