@@ -72,13 +72,21 @@ tcp_message_t udp_message_t::to_tcp() {
         log("[ udp_message_t::to_tcp() ] Invalid message_type (%u)", this->message_type);
     }
 
-    memcpy(tcp_message.topic, this->topic, strlen(this->topic) + 1);
+    memcpy(tcp_message.topic, this->topic, sizeof(this->topic));
     tcp_message.message_type = this->message_type;
     return tcp_message;
 }
 
 subscriber_t::subscriber_t() {
     this->online_as = -1;
+}
+
+vector<string> split_command(string buf) {
+    vector<string> rez;
+    stringstream ss(buf);
+    while (ss >> buf)
+        rez.push_back(buf);
+    return rez;
 }
 
 // message_from_tcp_t::message_from_tcp_t() {

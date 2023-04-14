@@ -2,7 +2,7 @@
 # All rights reserved.
 
 CC = g++ 
-CFLAGS = -Wall -Wextra -std=c++17 # -DLOG_ENABLE # Uncomment for debugging
+CFLAGS = -Wall -Wextra -std=c++17 -DLOG_ENABLE # Uncomment for debugging
 LDFLAGS = -lm 
 
 # Non-files

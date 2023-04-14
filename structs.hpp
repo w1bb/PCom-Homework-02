@@ -5,6 +5,7 @@
 #define _WI_STRUCTS_HPP_
 
 #include <cstdint>
+#include <vector>
 #include <cstring>
 #include <string>
 #include <cmath>
@@ -87,5 +88,9 @@ struct message_from_tcp_t {
 
     // message_from_tcp_t();
 } __attribute__((packed, aligned(1)));
+
+// - - - - -
+
+vector<string> split_command(string buf);
 
 #endif // _WI_STRUCTS_HPP_

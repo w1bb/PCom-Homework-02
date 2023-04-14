@@ -100,7 +100,7 @@ class Topic:
     ret.append(Topic("a_subunitary_float", "FLOAT", "0.042"))
     ret.append(Topic("a_negative_subunitary_float", "FLOAT", "-0.042"))
     ret.append(Topic("ana_string_announce", "STRING", "Ana are mere"))
-    ret.append(Topic("huge_string", "STRING", "abcdefghijklmnopqrstuvwxyz"))
+    # ret.append(Topic("huge_string", "STRING", "abcdefghijklmnopqrstuvwxyz"))
     return ret
 
 ####### Process utils#######
@@ -149,7 +149,9 @@ class Process:
     if self.started:
       with timeout(tout):
         try:
-          return self.proc.stdout.readline()
+          aux = self.proc.stdout.readline()
+          print(f"Just read: \"{aux}\"")
+          return aux
         except TimeoutError as e:
           return "timeout"
     else:

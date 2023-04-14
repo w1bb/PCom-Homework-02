@@ -9,6 +9,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <vector>
 #include <string>
 
 using namespace std;

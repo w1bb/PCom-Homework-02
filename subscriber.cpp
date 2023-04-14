@@ -127,31 +127,35 @@ int main(int argc, char *argv[]) {
             if (events[i].data.fd == STDIN_FILENO) {
                 if (fgets(buf, sizeof(buf), stdin) && !isspace(buf[0])) {
                     log("[ INPUT ] %s", buf);
+                    vector<string> commands = split_command(buf);
+                    if (commands.size() == 0)
+                        continue;
+
                     // Check if "exit" was typed
-                    if (!strncmp(buf, "exit", 4)) {
+                    if (commands[0] == "exit") {
                         forever = false;
                         break;
                     }
 
                     message_from_tcp_t message;
                     strcpy(message.unique_id, id.c_str());
-                    if (!strncmp(buf, "subscribe", 9)) {
-                        sscanf(buf,
-                               "%s %s %" SCNu8,
-                               message.command,
-                               message.topic,
-                               &message.store_and_forward);
+                    strncpy(message.command, commands[0].c_str(), sizeof(message.command));
+
+                    if (commands[0] == "subscribe") {
+                        if (commands.size() < 3)
+                            continue;
+                        strncpy(message.topic, commands[1].c_str(), sizeof(message.topic));
+                        message.store_and_forward = (commands[2][0] == '1');
                         rc = send(tcp_server_fd, &message, sizeof(message), 0);
                         if (rc < 0) {
                             log("send - Could not send message to server\n");
                             return -1;
                         }
                         printf("Subscribed to topic.\n");
-                    } else if (!strncmp(buf, "unsubscribe", 11)) {
-                        sscanf(buf,
-                               "%s %s",
-                               message.command,
-                               message.topic);
+                    } else if (commands[0] == "unsubscribe") {
+                        if (commands.size() < 2)
+                            continue;
+                        strncpy(message.topic, commands[1].c_str(), sizeof(message.topic));
                         rc = send(tcp_server_fd, &message, sizeof(message), 0);
                         if (rc < 0) {
                             log("send - Could not send message to server\n");

@@ -283,15 +283,17 @@ int main(int argc, char *argv[]) {
                 }
                 
                 // Check if anyone subscribed
-                if (subscribers_of.find(recv_udp_msg.topic) == subscribers_of.end()) {
+                strncpy(buf, recv_udp_msg.topic, MAX_TOPIC_LEN);
+                buf[sizeof(recv_udp_msg.topic)] = '\0';
+                if (subscribers_of.find(buf) == subscribers_of.end()) {
                     // log("Note: no subscribers found!\n");
                     continue;
                 }
 
                 log("TCP payload set to '%s'\n", new_tcp_msg.payload);
-                log("TCP topic set to '%s'\n", new_tcp_msg.topic);
+                log("TCP topic set to '%s'\n", buf);
 
-                for (string subscriber_id : subscribers_of[recv_udp_msg.topic]) {
+                for (string subscriber_id : subscribers_of[buf]) {
                     // Check if said subscriber is even online
                     if (subscriber_with_id[subscriber_id].online_as >= 0) {
                         log("Sending NOW to %s\n", subscriber_id.c_str());
@@ -305,7 +307,7 @@ int main(int argc, char *argv[]) {
                             log("send - Could not send topic info to subscriber\n");
                             return -1;
                         }
-                    } else if (subscriber_with_id[subscriber_id].subscriptions[recv_udp_msg.topic]) {
+                    } else if (subscriber_with_id[subscriber_id].subscriptions[buf]) {
                         log("Sending LATER to %s\n", subscriber_id.c_str());
                         subscriber_with_id[subscriber_id].to_send.push(new_tcp_msg);
                     }
@@ -343,12 +345,14 @@ int main(int argc, char *argv[]) {
                         break; // TODO - this might be useless
                     
                     if (!strncmp(message.command, "subscribe", 9)) {
-                        log("Subscribing to '%s'\n", message.topic);
-                        subscribers_of[message.topic].insert(id);
-                        subscriber_with_id[id].subscriptions[message.topic]
+                        strncpy(buf, message.topic, MAX_TOPIC_LEN);
+                        buf[sizeof(message.topic)] = '\0';
+                        log("Subscribing %s to '%s'\n", id.c_str(), buf);
+                        subscribers_of[buf].insert(id);
+                        subscriber_with_id[id].subscriptions[buf]
                             = message.store_and_forward;
                     } else if (!strncmp(message.command, "unsubscribe", 11)) {
-                        subscribers_of[message.topic].erase(id);
+                        subscribers_of[buf].erase(id);
                     }
                 }
             }
