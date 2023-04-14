@@ -47,7 +47,7 @@ struct tcp_message_t {
     char from_ip[MAX_IP_LEN];
     uint16_t from_port;
 
-    // - - - - - - - - - - - - - - - - - - - -
+    // - - - - -
 
     // Provide information for origin
     void set_from(struct sockaddr_in& udp_addr);
@@ -63,16 +63,19 @@ struct udp_message_t {
     uint8_t message_type;
     char payload[MAX_PAYLOAD_LEN];
 
+    // - - - - -
+
     tcp_message_t to_tcp();
 } __attribute__((packed, aligned(1)));
 
 // - - - - -
 
 struct subscriber_t {
-    // string unique_id;
     queue<tcp_message_t> to_send;
     int online_as;
     map<string, bool> subscriptions;
+
+    // - - - - -
 
     subscriber_t();
 };
@@ -84,12 +87,6 @@ struct message_from_tcp_t {
     char topic[MAX_TOPIC_LEN];
     char unique_id[MAX_CLIENT_ID_SIZE];
     uint8_t store_and_forward;
-
-    // message_from_tcp_t();
 } __attribute__((packed, aligned(1)));
-
-// - - - - -
-
-vector<string> split_command(string buf);
 
 #endif // _WI_STRUCTS_HPP_

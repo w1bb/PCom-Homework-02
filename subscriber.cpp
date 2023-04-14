@@ -6,9 +6,14 @@
 #include "structs.hpp"
 #include "utils.hpp"
 
+using namespace std;
+
+// - - - - -
+
 int tcp_server_fd;
 
 void close_client(int sig) {
+    sig = sig; // Remove warning
     log("Closing the client (sig = %d)...\n", sig);
     close(tcp_server_fd);
     log("All OK\n");

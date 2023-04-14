@@ -31,4 +31,9 @@ using namespace std;
 #define log(args...)
 #endif
 
+// - - - - -
+
+// Split buffer into multiple strings
+vector<string> split_command(string buf);
+
 #endif // _WI_UTILS_HPP_

@@ -80,18 +80,3 @@ tcp_message_t udp_message_t::to_tcp() {
 subscriber_t::subscriber_t() {
     this->online_as = -1;
 }
-
-vector<string> split_command(string buf) {
-    vector<string> rez;
-    stringstream ss(buf);
-    while (ss >> buf)
-        rez.push_back(buf);
-    return rez;
-}
-
-// message_from_tcp_t::message_from_tcp_t() {
-//     memset(this->command, 0, sizeof(command));
-//     memset(this->topic, 0, sizeof(command));
-//     memset(this->unique_id, 0, sizeof(command));
-//     this->store_and_forward = 0;
-// }

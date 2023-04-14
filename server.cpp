@@ -5,11 +5,12 @@
 #include <unordered_set>
 #include <cstdio>
 
-#include "dynamic_array.hpp"
 #include "structs.hpp"
 #include "utils.hpp"
 
 using namespace std;
+
+// - - - - -
 
 // Map between topic and IDs
 unordered_map< string, unordered_set<string> > subscribers_of;
@@ -24,6 +25,7 @@ unordered_map<int, string> id_with_fd;
 unordered_set<int> connected_tcp_clients;
 
 void close_server(int sig) {
+    sig = sig; // Remove warning
     log("Closing the server (sig = %d)...\n", sig);
     for (auto client : connected_tcp_clients) {
         tcp_message_t stop_message;

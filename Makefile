@@ -11,16 +11,19 @@ LDFLAGS = -lm
 # - - - - -
 
 # Build everything
-build: structs.o server subscriber
+build: structs.o utils.o server subscriber
 
 # Build individually
 structs.o: structs.cpp
 	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
 
-server: server.cpp structs.o
+utils.o: utils.cpp
+	$(CC) $(CFLAGS) $(LDFLAGS) -c $< -o $@
+
+server: server.cpp structs.o utils.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
-subscriber: subscriber.cpp structs.o
+subscriber: subscriber.cpp structs.o utils.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
 
 # - - - - -
