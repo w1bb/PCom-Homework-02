@@ -255,6 +255,19 @@ int main(int argc, char *argv[]) {
                        id.c_str(),
                        inet_ntoa(new_client_addr.sin_addr),
                        ntohs(new_client_addr.sin_port));
+
+                // Send missed messages
+                while (!subscriber_with_id[id].to_send.empty()) {
+                    tcp_message_t new_tcp_msg = subscriber_with_id[id].to_send.front();
+                    log("Sending old message NOW to %s\n", id.c_str());
+                    rc = send(
+                        subscriber_with_id[id].online_as,
+                        &new_tcp_msg,
+                        sizeof(new_tcp_msg),
+                        0
+                    );
+                    subscriber_with_id[id].to_send.pop();
+                }
             }
 
             // - - - - -
@@ -284,7 +297,7 @@ int main(int argc, char *argv[]) {
                 
                 // Check if anyone subscribed
                 strncpy(buf, recv_udp_msg.topic, MAX_TOPIC_LEN);
-                buf[sizeof(recv_udp_msg.topic)] = '\0';
+                buf[MAX_TOPIC_LEN] = '\0';
                 if (subscribers_of.find(buf) == subscribers_of.end()) {
                     // log("Note: no subscribers found!\n");
                     continue;
