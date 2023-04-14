@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     // Listen
-    rc = listen(tcp_listen_fd, MAX_CLIENTS);
+    rc = listen(tcp_listen_fd, 0);
     if (rc < 0) {
         log("listen - TCP listen fail\n");
         return -1;
